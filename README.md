@@ -4,6 +4,23 @@
 - `backend/` - 后端服务 (FastAPI)
 - `frontend/` - 前端界面 (React + Vite)
 
+## 服务器配置说明
+
+项目中使用的 IP 地址 `38.175.194.75` 是生产环境服务器的地址：
+
+- 后端服务运行在: `http://38.175.194.75:8000`
+- 前端服务运行在: `http://38.175.194.75:9000`
+
+这个地址在以下文件中被引用：
+1. `backend/app/core/config.py` - CORS 配置中允许来自此地址的请求
+2. `backend/app/main.py` - 后端服务绑定到此地址
+3. `frontend/src/App.tsx` - 前端 API 请求的目标地址
+4. `frontend/vite.config.ts` - 前端开发服务器绑定到此地址
+5. `backend/cron_jobs.sh` - 定时任务脚本中调用后端 API 的地址
+6. `backend/metrics_cron.sh` - 定时任务脚本中调用后端 API 的地址
+
+如果需要在不同的服务器上部署，请修改以上文件中的 IP 地址。
+
 ## 开发环境配置
 
 ### 后端配置
