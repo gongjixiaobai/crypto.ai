@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import CountUp from 'react-countup';
 import './App.css';
 
 // 定义API基础URL
@@ -53,11 +52,10 @@ interface PriceHistory {
 
 // 数字动画组件
 const DigitAnimator: React.FC<{ 
-  previousDigit: string; 
   currentDigit: string; 
   changed: boolean;
   animationClass: string;
-}> = ({ previousDigit, currentDigit, changed, animationClass }) => {
+}> = ({ currentDigit, changed, animationClass }) => {
   if (!changed) {
     return <span>{currentDigit}</span>;
   }
@@ -154,7 +152,6 @@ const PriceAnimator: React.FC<{
         return (
           <DigitAnimator
             key={index}
-            previousDigit={previousDigits[index] || ''}
             currentDigit={digit}
             changed={changed}
             animationClass={animationClass}
@@ -181,7 +178,6 @@ function App() {
   const [chats, setChats] = useState<ChatData[]>([]); // 添加聊天记录状态
   const [completedTrades, setCompletedTrades] = useState<CompletedTrade[]>([]); // 添加已完成交易状态
   const [loading, setLoading] = useState<boolean>(true);
-  const [pricingLoading, setPricingLoading] = useState<boolean>(true);
   const [chatsLoading, setChatsLoading] = useState<boolean>(true); // 添加聊天记录加载状态
   const [completedTradesLoading, setCompletedTradesLoading] = useState<boolean>(true); // 添加已完成交易加载状态
   const [error, setError] = useState<string | null>(null);
@@ -244,7 +240,7 @@ function App() {
       }
     } catch (err) {
       console.error('Error fetching metrics:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch metrics');
+      setError(err instanceof Error ? err.message : '获取指标数据失败');
     } finally {
       setLoading(false);
     }
@@ -254,7 +250,6 @@ function App() {
   const fetchPricing = useCallback(async () => {
     try {
       setPricingError(null);
-      setPricingLoading(true);
       // 使用简化的价格API端点，只获取当前价格
       const response = await fetch(`${API_BASE_URL}/api/pricing/simple`);
       if (!response.ok) {
@@ -271,8 +266,8 @@ function App() {
         
         // 检查每个货币的价格是否发生变化
         for (const symbol of symbols) {
-          const currentPrice = newPricing[symbol]?.current_price || 0;
-          const previousPrice = prevPricingRef.current?.[symbol]?.current_price || 0;
+          const currentPrice = newPricing[symbol as keyof CryptoPricing]?.current_price || 0;
+          const previousPrice = prevPricingRef.current?.[symbol as keyof CryptoPricing]?.current_price || 0;
           
           // 使用更安全的浮点数比较
           const arePricesEqual = (a: number, b: number): boolean => {
@@ -292,8 +287,8 @@ function App() {
           let hasHistoryUpdated = false;
           
           symbols.forEach(symbol => {
-            const currentPrice = newPricing[symbol]?.current_price || 0;
-            const previousPrice = prevPricingRef.current?.[symbol]?.current_price || 0;
+            const currentPrice = newPricing[symbol as keyof CryptoPricing]?.current_price || 0;
+            const previousPrice = prevPricingRef.current?.[symbol as keyof CryptoPricing]?.current_price || 0;
             
             // 使用更安全的浮点数比较
             const arePricesEqual = (a: number, b: number): boolean => {
@@ -323,16 +318,16 @@ function App() {
       }
     } catch (err) {
       console.error('Error fetching pricing:', err);
-      setPricingError(err instanceof Error ? err.message : 'Failed to fetch pricing');
+      setPricingError(err instanceof Error ? err.message : '获取价格数据失败');
     } finally {
-      setPricingLoading(false);
+
     }
   }, [priceHistory]);
 
   // 获取聊天记录数据
   const fetchChats = useCallback(async () => {
     try {
-      // setChatsLoading(true);
+      setChatsLoading(true);
       setChatsError(null);
       const response = await fetch(`${API_BASE_URL}/api/trading/chats`);
       if (!response.ok) {
@@ -345,10 +340,10 @@ function App() {
       }
     } catch (err) {
       console.error('Error fetching chats:', err);
-      setChatsError(err instanceof Error ? err.message : 'Failed to fetch chats');
+      setChatsError(err instanceof Error ? err.message : '获取聊天记录失败');
       // 不要清除现有数据，即使获取新数据失败
     } finally {
-      // setChatsLoading(false);
+      setChatsLoading(false);
     }
   }, []);
 
@@ -368,7 +363,7 @@ function App() {
       }
     } catch (err) {
       console.error('Error fetching completed trades:', err);
-      setCompletedTradesError(err instanceof Error ? err.message : 'Failed to fetch completed trades');
+      setCompletedTradesError(err instanceof Error ? err.message : '获取已完成交易失败');
     } finally {
       setCompletedTradesLoading(false);
     }
@@ -418,7 +413,7 @@ function App() {
 
   // 简化的图表组件
   const SimpleChart = ({ data }: { data: MetricData[] }) => {
-    if (!data || data.length === 0) return <div className="no-data">No chart data available</div>;
+    if (!data || data.length === 0) return <div className="no-data">暂无图表数据</div>;
     
     const maxValue = Math.max(...data.map(d => d.totalCashValue));
     const minValue = Math.min(...data.map(d => d.totalCashValue));
@@ -427,10 +422,10 @@ function App() {
     return (
       <div className="chart-container">
         <div className="chart-header">
-          <h3>TOTAL ACCOUNT VALUE</h3>
+          <h3>账户总价值</h3>
           <div className="chart-controls">
-            <button className="time-range active">ALL</button>
-            <button className="time-range">72H</button>
+            <button className="time-range active">全部</button>
+            <button className="time-range">72小时</button>
           </div>
         </div>
         <svg width="100%" height="300" viewBox="0 0 800 300">
@@ -476,13 +471,13 @@ function App() {
         </svg>
         <div className="chart-stats">
           <div className="stat-item">
-            <span className="stat-label">CURRENT</span>
+            <span className="stat-label">当前</span>
             <span className="stat-value">
               ${metricsData.length > 0 ? metricsData[metricsData.length - 1].totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
             </span>
           </div>
           <div className="stat-item">
-            <span className="stat-label">RETURN</span>
+            <span className="stat-label">收益</span>
             <span className={`stat-value ${metricsData.length > 0 && metricsData[metricsData.length - 1].currentTotalReturn >= 0 ? 'positive' : 'negative'}`}>
               {metricsData.length > 0 ? `${metricsData[metricsData.length - 1].currentTotalReturn.toFixed(2)}%` : '0.00%'}
             </span>
@@ -515,7 +510,7 @@ function App() {
         return (
           <div className="loading-state">
             <div className="spinner"></div>
-            <p>Loading chat history...</p>
+            <p>正在加载聊天记录...</p>
           </div>
         );
       }
@@ -524,7 +519,7 @@ function App() {
     if (chatsError) {
       return (
         <div className="error-state">
-          <p>Error loading chat history: {chatsError}</p>
+          <p>加载聊天记录出错: {chatsError}</p>
         </div>
       );
     }
@@ -532,7 +527,7 @@ function App() {
     if (!chats || chats.length === 0) {
       return (
         <div className="no-data-state">
-          <p>No chat history available</p>
+          <p>暂无聊天记录</p>
         </div>
       );
     }
@@ -553,24 +548,24 @@ function App() {
                 className="expand-toggle"
                 onClick={() => toggleExpand(chat.id)}
               >
-                {expandedStates[chat.id] ? 'Hide Prompt' : 'Show Prompt'}
+                {expandedStates[chat.id] ? '隐藏提示词' : '显示提示词'}
               </button>
             </div>
             <div className="chat-content">
               <div className="chat-decision">
-                <strong>Decision:</strong>
+                <strong>决策:</strong>
                 <pre>{JSON.stringify(chat.chat, null, 2)}</pre>
               </div>
               {/* 默认显示分析内容（推理过程） */}
               <div className="chat-reasoning">
-                <strong>Analysis (Reasoning):</strong>
+                <strong>分析 (推理过程):</strong>
                 <div className="reasoning-content">{chat.reasoning}</div>
               </div>
               {/* 点击展开时显示提示词内容 */}
               {expandedStates[chat.id] && (
                 <div className="chat-expanded-content">
                   <div className="chat-prompt">
-                    <strong>Prompt:</strong> {chat.user_prompt}
+                    <strong>提示词:</strong> {chat.user_prompt}
                   </div>
                 </div>
               )}
@@ -648,41 +643,41 @@ function App() {
     <div className="app">
       <header className="app-header">
         <div className="header-content">
-          <h1 className="app-title">Nof1.ai</h1>
-          <p className="app-subtitle">AI trading in real markets</p>
-          {lastUpdate && <div className="last-update">Last updated: {lastUpdate}</div>}
+          <h1 className="app-title">Crypto.ai</h1>
+          <p className="app-subtitle">AI智能交易系统</p>
+          {lastUpdate && <div className="last-update">最后更新: {lastUpdate}</div>}
         </div>
       </header>
 
       {/* 错误提示 */}
       {(error || pricingError || chatsError) && (
         <div className="alerts-container">
-          {error && <div className="alert error">Metrics Error: {error}</div>}
-          {pricingError && <div className="alert error">Pricing Error: {pricingError}</div>}
-          {chatsError && <div className="alert error">Chats Error: {chatsError}</div>}
+          {error && <div className="alert error">指标错误: {error}</div>}
+          {pricingError && <div className="alert error">价格错误: {pricingError}</div>}
+          {chatsError && <div className="alert error">聊天错误: {chatsError}</div>}
         </div>
       )}
 
       {/* 加密货币行情 */}
       <section className="crypto-pricing-section">
         <div className="section-header">
-          <h2>CRYPTO PRICING</h2>
+          <h2>加密货币价格</h2>
         </div>
         <div className="crypto-grid">
           {pricingError ? (
             <div className="error-state">
-              <p>Error loading pricing data</p>
+              <p>加载价格数据出错</p>
             </div>
           ) : pricing ? (
             <>
               <CryptoCard
                 symbol="BTC"
-                name="Bitcoin"
+                name="比特币"
                 price={`$${pricing.btc?.current_price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               />
               <CryptoCard
                 symbol="ETH"
-                name="Ethereum"
+                name="以太坊"
                 price={`$${pricing.eth?.current_price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               />
               <CryptoCard
@@ -692,18 +687,18 @@ function App() {
               />
               <CryptoCard
                 symbol="BNB"
-                name="BNB"
+                name="币安币"
                 price={`$${pricing.bnb?.current_price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               />
               <CryptoCard
                 symbol="DOGE"
-                name="Dogecoin"
+                name="狗狗币"
                 price={`$${pricing.doge?.current_price?.toFixed(4)}`}
               />
             </>
           ) : (
             <div className="no-data-state">
-              <p>No pricing data available</p>
+              <p>暂无价格数据</p>
             </div>
           )}
         </div>
@@ -714,22 +709,22 @@ function App() {
         {/* 左侧图表面板 */}
         <div className="chart-panel">
           <div className="chart-panel-header">
-            <h2>PERFORMANCE CHART</h2>
-            <p>Real-time tracking • Updates every 10s</p>
+            <h2>性能图表</h2>
+            <p>实时跟踪 • 每10秒更新</p>
           </div>
           {loading ? (
             <div className="loading-state chart-loading">
               <div className="spinner"></div>
-              <p>Loading chart data...</p>
+              <p>正在加载图表数据...</p>
             </div>
           ) : error ? (
             <div className="error-state">
-              <p>Error loading chart data</p>
+              <p>加载图表数据出错</p>
             </div>
           ) : (
             <>
               <SimpleChart data={metricsData} />
-              <div className="data-points">{metricsData.length} of {totalCount.toLocaleString()} points</div>
+              <div className="data-points">{metricsData.length} / {totalCount.toLocaleString()} 数据点</div>
             </>
           )}
         </div>
@@ -743,25 +738,25 @@ function App() {
                 className={`nav-item ${activeTab === 'MODEL CHAT' ? 'active' : ''}`}
                 onClick={() => setActiveTab('MODEL CHAT')}
               >
-                MODEL CHAT
+                模型聊天
               </li>
               <li 
                 className={`nav-item ${activeTab === 'POSITIONS' ? 'active' : ''}`}
                 onClick={() => setActiveTab('POSITIONS')}
               >
-                POSITIONS
+                持仓
               </li>
               <li 
                 className={`nav-item ${activeTab === 'COMPLETED TRADES' ? 'active' : ''}`}
                 onClick={() => setActiveTab('COMPLETED TRADES')}
               >
-                COMPLETED TRADES
+                已完成交易
               </li>
               <li 
                 className={`nav-item ${activeTab === 'README.TXT' ? 'active' : ''}`}
                 onClick={() => setActiveTab('README.TXT')}
               >
-                README.TXT
+                说明文档
               </li>
             </ul>
           </nav>
@@ -771,8 +766,8 @@ function App() {
             {activeTab === 'MODEL CHAT' && (
               <div className="tab-content">
                 <div className="section-header">
-                  <h2>MODEL CHAT HISTORY</h2>
-                  <p>AI trading decisions and reasoning • Updates every 3 minutes</p>
+                  <h2>模型聊天记录</h2>
+                  <p>AI交易决策和推理过程 • 每3分钟更新</p>
                 </div>
                 <ChatList />
               </div>
@@ -781,11 +776,11 @@ function App() {
             {activeTab === 'POSITIONS' && (
               <div className="tab-content">
                 <div className="section-header">
-                  <h2>CURRENT POSITIONS</h2>
-                  <p>Active trading positions</p>
+                  <h2>当前持仓</h2>
+                  <p>活跃交易持仓</p>
                 </div>
                 <div className="no-data-state">
-                  <p>Position tracking not implemented yet</p>
+                  <p>持仓跟踪功能尚未实现</p>
                 </div>
               </div>
             )}
@@ -793,17 +788,17 @@ function App() {
             {activeTab === 'COMPLETED TRADES' && (
               <div className="tab-content">
                 <div className="section-header">
-                  <h2>COMPLETED TRADES</h2>
-                  <p>Historical trade records</p>
+                  <h2>已完成交易</h2>
+                  <p>历史交易记录</p>
                 </div>
                 {completedTradesLoading ? (
                   <div className="loading-state">
                     <div className="spinner"></div>
-                    <p>Loading completed trades...</p>
+                    <p>正在加载已完成交易...</p>
                   </div>
                 ) : completedTradesError ? (
                   <div className="error-state">
-                    <p>Error loading completed trades: {completedTradesError}</p>
+                    <p>加载已完成交易出错: {completedTradesError}</p>
                   </div>
                 ) : completedTrades && completedTrades.length > 0 ? (
                   <div className="completed-trades-list">
@@ -821,31 +816,31 @@ function App() {
                         <div className="trade-details">
                           {trade.amount && (
                             <div className="trade-detail">
-                              <span className="detail-label">Amount:</span>
+                              <span className="detail-label">数量:</span>
                               <span className="detail-value">{trade.amount}</span>
                             </div>
                           )}
                           {trade.pricing && (
                             <div className="trade-detail">
-                              <span className="detail-label">Price:</span>
+                              <span className="detail-label">价格:</span>
                               <span className="detail-value">${trade.pricing}</span>
                             </div>
                           )}
                           {trade.leverage && (
                             <div className="trade-detail">
-                              <span className="detail-label">Leverage:</span>
+                              <span className="detail-label">杠杆:</span>
                               <span className="detail-value">{trade.leverage}x</span>
                             </div>
                           )}
                           {trade.stop_loss && (
                             <div className="trade-detail">
-                              <span className="detail-label">Stop Loss:</span>
+                              <span className="detail-label">止损:</span>
                               <span className="detail-value">${trade.stop_loss}</span>
                             </div>
                           )}
                           {trade.take_profit && (
                             <div className="trade-detail">
-                              <span className="detail-label">Take Profit:</span>
+                              <span className="detail-label">止盈:</span>
                               <span className="detail-value">${trade.take_profit}</span>
                             </div>
                           )}
@@ -855,7 +850,7 @@ function App() {
                   </div>
                 ) : (
                   <div className="no-data-state">
-                    <p>No completed trades available</p>
+                    <p>暂无已完成交易</p>
                   </div>
                 )}
               </div>
@@ -864,26 +859,26 @@ function App() {
             {activeTab === 'README.TXT' && (
               <div className="tab-content">
                 <div className="section-header">
-                  <h2>README.TXT</h2>
-                  <p>Project documentation</p>
+                  <h2>说明文档</h2>
+                  <p>项目文档</p>
                 </div>
                 <div className="readme-content">
                   <h3>Crypto.ai</h3>
-                  <p>This is the crypto.ai project, an AI-powered cryptocurrency trading system.</p>
-                  <h4>Features:</h4>
+                  <p>这是一个crypto.ai项目，一个由AI驱动的加密货币交易系统。</p>
+                  <h4>功能特性:</h4>
                   <ul>
-                    <li>Real-time cryptocurrency pricing</li>
-                    <li>AI-powered trading decisions</li>
-                    <li>Performance tracking charts</li>
-                    <li>Automated trading execution</li>
+                    <li>实时加密货币价格</li>
+                    <li>AI驱动的交易决策</li>
+                    <li>性能跟踪图表</li>
+                    <li>自动化交易执行</li>
                   </ul>
-                  <h4>Technology Stack:</h4>
+                  <h4>技术栈:</h4>
                   <ul>
-                    <li>Frontend: React with TypeScript</li>
-                    <li>Backend: FastAPI with Python</li>
-                    <li>Database: SQLite</li>
-                    <li>AI Model: DeepSeek API</li>
-                    <li>Exchange API: Binance</li>
+                    <li>前端: React with TypeScript</li>
+                    <li>后端: FastAPI with Python</li>
+                    <li>数据库: SQLite</li>
+                    <li>AI模型: DeepSeek API</li>
+                    <li>交易所API: Binance</li>
                   </ul>
                 </div>
               </div>
