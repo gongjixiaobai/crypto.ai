@@ -3,8 +3,8 @@ from typing import Optional
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "nof1-clone"
-    DATABASE_URL: str = "sqlite:///./nof1.db"
+    PROJECT_NAME: str = "crypto-ai"
+    DATABASE_URL: str = "sqlite:///./crypto.db"
     BINANCE_API_KEY: str
     BINANCE_API_SECRET: str
     DEEPSEEK_API_KEY: str

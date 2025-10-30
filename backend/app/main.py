@@ -42,7 +42,7 @@ app.include_router(trading.router, prefix="/api/trading", tags=["trading"])
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to nof1.ai clone backend"}
+    return {"message": "Welcome to crypto.ai backend"}
 
 # 添加应用生命周期事件处理器
 @app.on_event("startup")

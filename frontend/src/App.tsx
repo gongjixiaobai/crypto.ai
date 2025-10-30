@@ -868,8 +868,8 @@ function App() {
                   <p>Project documentation</p>
                 </div>
                 <div className="readme-content">
-                  <h3>Nof1.ai Clone</h3>
-                  <p>This is a clone of the nof1.ai project, an AI-powered cryptocurrency trading system.</p>
+                  <h3>Crypto.ai</h3>
+                  <p>This is the crypto.ai project, an AI-powered cryptocurrency trading system.</p>
                   <h4>Features:</h4>
                   <ul>
                     <li>Real-time cryptocurrency pricing</li>

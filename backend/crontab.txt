@@ -1,8 +1,9 @@
-# nof1.ai cron jobs
-# 每3分钟执行一次AI交易决策
+# crypto.ai cron jobs
+
+# 每3分钟执行一次交易决策任务
 */3 * * * * cd /root/nof1.ai/backend && ./cron_jobs.sh >> /root/nof1.ai/backend/logs/cron_jobs.log 2>&1
 
-# 每20秒执行一次指标收集（通过每分钟执行3次）
+# 每20秒执行一次指标收集任务
 * * * * * cd /root/nof1.ai/backend && ./metrics_cron_runner.sh >> /root/nof1.ai/backend/logs/metrics_cron.log 2>&1
 * * * * * sleep 20 && cd /root/nof1.ai/backend && ./metrics_cron_runner.sh >> /root/nof1.ai/backend/logs/metrics_cron.log 2>&1
 * * * * * sleep 40 && cd /root/nof1.ai/backend && ./metrics_cron_runner.sh >> /root/nof1.ai/backend/logs/metrics_cron.log 2>&1

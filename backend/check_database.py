@@ -1,50 +1,30 @@
 #!/usr/bin/env python3
-"""
-数据库检查脚本
-用于检查nof1.ai项目中的数据表记录数
-"""
+# 用于检查crypto.ai项目中的数据表记录数
 
-import os
 import sys
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+import os
 
-# 添加项目路径到Python路径
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+# 将项目根目录添加到Python路径中
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.core.config import settings
-from app.models.trading import Metrics, Chat, Trading
+from app.core.database import SessionLocal
+from app.models.trading import Chat, Metric, Pricing, CompletedTrade
 
-def check_database():
-    """检查数据库中的数据"""
-    print("正在连接到数据库...")
-    engine = create_engine(
-        settings.DATABASE_URL,
-        connect_args={"check_same_thread": False},
-        pool_pre_ping=True,
-        pool_recycle=300
-    )
-    
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+def check_table_counts():
     db = SessionLocal()
-    
     try:
-        print("检查数据库中的记录数...")
+        chat_count = db.query(Chat).count()
+        metric_count = db.query(Metric).count()
+        pricing_count = db.query(Pricing).count()
+        completed_trade_count = db.query(CompletedTrade).count()
         
-        # 查询各表的记录数
-        metrics_count = db.query(Metrics).count()
-        chats_count = db.query(Chat).count()
-        tradings_count = db.query(Trading).count()
-        
-        print(f"Metrics 表记录数: {metrics_count}")
-        print(f"Chats 表记录数: {chats_count}")
-        print(f"Tradings 表记录数: {tradings_count}")
-        print("检查完成！")
-        
-    except Exception as e:
-        print(f"检查数据库时出错: {e}")
+        print(f"Chat 表记录数: {chat_count}")
+        print(f"Metric 表记录数: {metric_count}")
+        print(f"Pricing 表记录数: {pricing_count}")
+        print(f"CompletedTrade 表记录数: {completed_trade_count}")
+        print(f"总记录数: {chat_count + metric_count + pricing_count + completed_trade_count}")
     finally:
         db.close()
 
 if __name__ == "__main__":
-    check_database()
+    check_table_counts()
