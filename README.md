@@ -16,11 +16,19 @@
    ```
 
 2. 配置环境变量:
+   项目需要以下环境变量，请复制 `.env.example` 文件并根据您的配置进行修改：
    ```bash
    # 复制并修改 .env 文件
+   cd backend
    cp .env.example .env
    # 编辑 .env 文件填入必要配置
    ```
+   
+   必需的环境变量包括：
+   - `BINANCE_API_KEY` - Binance API密钥
+   - `BINANCE_API_SECRET` - Binance API密钥
+   - `DEEPSEEK_API_KEY` - DeepSeek API密钥
+   - `CRON_SECRET_KEY` - 定时任务认证密钥
 
 3. 运行后端服务:
    ```bash
