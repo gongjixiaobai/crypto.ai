@@ -1,44 +1,65 @@
-# NOF1.AI 项目部署说明
+# NOF1.AI 项目
 
 ## 项目结构
-- `backend/` - 后端代码 (FastAPI)
-- `frontend/` - 前端代码 (React + Vite)
+- `backend/` - 后端服务 (FastAPI)
+- `frontend/` - 前端界面 (React + Vite)
 
-## 已完成的步骤
+## 开发环境配置
 
-1. 创建了 `.gitignore` 文件，排除了依赖包：
-   - 后端：`venv/`, `__pycache__/`, `*.pyc`
-   - 前端：`node_modules/`, `dist/`
-   - 其他：`.env`, `.vscode/`, 日志文件等
-
-2. 将所有代码添加到本地Git仓库并进行了首次提交
-
-3. 配置了远程仓库地址
-
-## 推送代码到GitHub的步骤
-
-由于需要身份验证，您需要选择以下一种方式：
-
-### 方式一：使用GitHub Personal Access Token（推荐）
-```bash
-cd /root/nof1.ai
-git remote set-url origin https://<your-token>@github.com/gongjixiaobai/nof1.ai.git
-git push -u origin master
-```
-
-### 方式二：使用SSH密钥
-1. 复制公钥：
+### 后端配置
+1. 创建虚拟环境:
    ```bash
-   cat ~/.ssh/id_ed25519.pub
+   cd backend
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
    ```
 
-2. 在GitHub网站上添加此公钥到您的账户：
-   - 访问 GitHub > Settings > SSH and GPG keys > New SSH key
-   - 粘贴公钥内容并保存
-
-3. 使用SSH方式推送：
+2. 配置环境变量:
    ```bash
-   cd /root/nof1.ai
-   git remote set-url origin git@github.com:gongjixiaobai/nof1.ai.git
-   git push -u origin master
+   # 复制并修改 .env 文件
+   cp .env.example .env
+   # 编辑 .env 文件填入必要配置
+   ```
+
+3. 运行后端服务:
+   ```bash
+   uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+   ```
+
+### 前端配置
+1. 安装依赖:
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+2. 运行开发服务器:
+   ```bash
+   npm run dev
+   ```
+
+## 部署说明
+
+### 代码推送
+已配置 `.gitignore` 排除依赖包，可直接推送源代码:
+- 后端: 排除 `venv/`, `__pycache__/`
+- 前端: 排除 `node_modules/`, `dist/`
+
+### 生产环境部署
+1. 后端:
+   ```bash
+   cd backend
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   uvicorn app.main:app --host 0.0.0.0 --port 8000
+   ```
+
+2. 前端:
+   ```bash
+   cd frontend
+   npm install
+   npm run build
+   # 使用 nginx 或其他静态文件服务器部署 dist/ 目录
    ```
